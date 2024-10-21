@@ -1,0 +1,41 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Change this if you're using a different branch as your main branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0.x'  # Change this to match your project's .NET version
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Publish the project
+      run: dotnet publish -c Release -o out
+
+    - name: Copy output files to a static site folder
+      run: |
+        mkdir static_site
+        cp -r out/wwwroot/* static_site/
+        cp out/Pages/**/*.html static_site/
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./static_site
+        force_orphan: true
